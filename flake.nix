@@ -14,21 +14,15 @@
     };
   };
 
-  outputs = { self, nixpkgs,home-manager, neovim-flake, ... }@inputs: 
-let
-  neovimOverlay = neovim-flake.overlays.default;
-  pkgsWithOverlay = import nixpkgs { overlays = [ neovimOverlay ]; };
-in
+  outputs = { self, nixpkgs, home-manager, neovim-flake, ... }@inputs: 
   {
-    systemPackages = with pkgsWithOverlay; [
-      nvim-pkg
-    ];
 
 
     nixosConfigurations.default = nixpkgs.lib.nixosSystem {
       specialArgs = {inherit inputs;};
       modules = [
         ./configuration.nix
+        ./modules/nvim.nix
         inputs.home-manager.nixosModules.default
       ];
     };
