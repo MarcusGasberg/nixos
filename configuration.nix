@@ -5,11 +5,10 @@
 { config, pkgs, inputs, ... }:
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-      inputs.home-manager.nixosModules.default
-    ];
+  imports = [ # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+    inputs.home-manager.nixosModules.default
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -17,7 +16,7 @@
 
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-  nix.settings.experimental-features=["nix-command" "flakes"];
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -43,19 +42,6 @@
     LC_TELEPHONE = "da_DK.UTF-8";
     LC_TIME = "da_DK.UTF-8";
   };
-
-  # Configure keymap in X11
-  services.xserver = {
-    enable = true;
-    layout = "us";
-    xkb = {
-     options = "caps:escape";
-    };
-  };
-
-  # Enable the GNOME Desktop Environment.
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -85,22 +71,32 @@
     isNormalUser = true;
     description = "Marcus Gasberg";
     extraGroups = [ "networkmanager" "wheel" ];
-    packages = with pkgs; [
-      keyd
-      ripgrep
-      fd
-    ];
+    packages = with pkgs; [ keyd ripgrep fd ];
+    shell = pkgs.zsh;
   };
 
   home-manager = {
     extraSpecialArgs = { inherit inputs; };
-    users = {
-      "marcusg" = import ./home.nix;
-    };
+    users = { "marcusg" = import ./home.nix; };
   };
 
   # Install firefox.
   programs.firefox.enable = true;
+  programs.zsh.enable = true;
+
+  services.displayManager = { sddm.enable = true; };
+  services.xserver = {
+    enable = true;
+    xkb = {
+      options = "caps:escape";
+      layout = "us";
+    };
+  };
+  programs.hyprland = {
+    enable = true;
+    xwayland.enable = true;
+    package = inputs.hyprland.packages."${pkgs.system}".hyprland;
+  };
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -119,6 +115,10 @@
     nerdfonts
     zsh
     neovim
+    hyprland
+    wayland
+    wayland-utils
+    sddm # or another display manager of your choice
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -133,16 +133,12 @@
 
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
-   services.keyd = {
+  services.keyd = {
     enable = true;
     keyboards = {
       default = {
-        ids = ["*"];
-        settings = {
-          main = {
-	    capslock = "overload(meta, esc)";
-          };
-        };
+        ids = [ "*" ];
+        settings = { main = { capslock = "overload(meta, esc)"; }; };
       };
     };
   };

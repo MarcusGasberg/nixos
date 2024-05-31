@@ -8,17 +8,35 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-  };
+    nvim = {
+      url = "git+file:./nvim";
+      flake = false;
+    };
 
-  outputs = { self, nixpkgs, home-manager, ... }@inputs: 
-  {
-    nixosConfigurations.default = nixpkgs.lib.nixosSystem {
-      specialArgs = { inherit inputs; };
+    hyprland = { url = "git+https://github.com/hyprwm/Hyprland?submodules=1"; };
 
-      modules = [
-        ./configuration.nix
-        home-manager.nixosModules.default
-      ];
+    hyprland-plugins = {
+      url = "github:hyprwm/hyprland-plugins";
+      inputs.hyprland.follows = "hyprland";
     };
   };
+
+  outputs = { self, nixpkgs, home-manager, ... }@inputs:
+    let
+      system = "x86_64-linux";
+      pkgs = import nixpkgs { inherit system; };
+    in {
+      nixosConfigurations.default = nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit inputs; };
+
+        modules = [ ./configuration.nix home-manager.nixosModules.default ];
+      };
+
+      homeConfigurations."marcusg" = home-manager.lib.homeManagerConfiguration {
+        inherit pkgs;
+
+        modules = [ ./nixos/home.nix ];
+        extraSpecialArgs = { inherit inputs; };
+      };
+    };
 }

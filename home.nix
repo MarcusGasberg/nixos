@@ -1,6 +1,4 @@
-{ config, pkgs, inputs, ... }:
-
-{
+{ config, pkgs, inputs, ... }: {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = "marcusg";
@@ -10,74 +8,100 @@
     enable = true;
     userName = "Marcus Gasberg";
     userEmail = "mrgasberg@hotmail.com";
-
   };
 
-  programs.neovim = 
-  let
-    toLua = str: "lua << EOF\n${str}\nEOF\n";
-    toLuaFile = file: "lua << EOF\n${builtins.readFile file}\nEOF\n";
-  in
-  {
+  wayland.windowManager.hyprland = {
+    enable = true;
+
+    plugins =
+      [ inputs.hyprland-plugins.packages."${pkgs.system}".borders-plus-plus ];
+
+    settings = {
+      decoration = {
+        shadow_offset = "0 5";
+        "col.shadow" = "rgba(00000099)";
+      };
+
+      "$mod" = "SUPER";
+
+      bindm = [
+        "$mod, mouse:272, movewindow"
+        "$mod, mouse:273, resizewindow"
+        "$mod ALT, mouse:272, resizewindow"
+      ];
+
+      "plugin:borders-plus-plus" = {
+        add_borders = 1; # 0 - 9
+
+        # you can add up to 9 borders
+        "col.border_1" = "rgb(ffffff)";
+        "col.border_2" = "rgb(2222ff)";
+
+        # -1 means "default" as in the one defined in general:border_size
+        border_size_1 = 10;
+        border_size_2 = -1;
+
+        # makes outer edges match rounding of the parent. Turn on / off to better understand. Default = on.
+        natural_rounding = "yes";
+      };
+    };
+  };
+
+  programs.neovim = {
     enable = true;
     defaultEditor = true;
     viAlias = true;
     vimAlias = true;
     vimdiffAlias = true;
-
     extraPackages = with pkgs; [
       lua-language-server
-      rnix-lsp
+      nil
+      nixfmt
       xclip
       wl-clipboard
     ];
+    extraLuaConfig = ''
+      ${builtins.readFile ./nvim/init.lua}
+    '';
+  };
 
-    plugins = with pkgs.vimPlugins; [
-     {
-        plugin = nvim-lspconfig;
-        config = toLuaFile ./nvim/lua/lsp/init.lua;
-     }
+  programs.alacritty = {
+    enable = true;
+    settings = {
+      env.SHELL = "zsh";
+      env.TERM = "xterm-256color";
+      window.padding = {
+        x = 10;
+        y = 10;
+      };
+      window.decorations = "none";
+      window.opacity = 0.7;
+      scrolling.history = 1000;
+      font = {
+        normal = {
+          family = "JetBrains Mono Nerd Font";
+          style = "Regular";
+        };
+        bold = {
+          family = "JetBrains Mono Nerd Font";
+          style = "Bold";
+        };
+        italic = {
+          family = "JetBrains Mono Nerd Font";
+          style = "Italic";
+        };
+        size = 14;
+      };
+    };
+  };
 
-
-      cmp_luasnip
-      cmp-nvim-lsp
-      luasnip
-      friendly-snippets
-      nvim-cmp
-     {
-      plugin = nvim-cmp;
-      config = toLuaFile ./nvim/lua/lsp/cmp.lua;
-     }
-      
-      telescope-fzf-native-nvim
-      {
-        plugin = telescope-nvim;
-        config = toLuaFile ./nvim/lua/plugins/telescope.lua;
-      }
-
-      lualine-nvim
-      nvim-web-devicons
-
-      {
-        plugin = (nvim-treesitter.withPlugins (p: [
-          p.tree-sitter-nix
-          p.tree-sitter-vim
-          p.tree-sitter-bash
-          p.tree-sitter-lua
-          p.tree-sitter-json
-        ]));
-        config = toLuaFile ./nvim/lua/plugins/treesitter.lua;
-      }
-
-      vim-nix
-      ];
-
-      extraLuaConfig = ''
-        ${builtins.readFile ./nvim/lua/mappings.lua}
-        ${builtins.readFile ./nvim/lua/settings.lua}
-        ${builtins.readFile ./nvim/lua/colors.lua}
-        ${builtins.readFile ./nvim/lua/autocommands.lua}
-      '';
+  programs.zsh = {
+    enable = true;
+    oh-my-zsh = {
+      enable = true;
+      plugins = [ "git" ];
+      theme = "robbyrussell";
+    };
   };
 
   # This value determines the Home Manager release that your configuration is
@@ -117,6 +141,10 @@
     # # the Nix store. Activating the configuration will then make '~/.screenrc' a
     # # symlink to the Nix store copy.
     # ".screenrc".source = dotfiles/screenrc;
+    "./.config/nvim" = {
+      source = ./nvim;
+      recursive = true;
+    };
 
     # # You can also set the file content immediately.
     # ".gradle/gradle.properties".text = ''
@@ -141,9 +169,7 @@
   #
   #  /etc/profiles/per-user/marcusg/etc/profile.d/hm-session-vars.sh
   #
-  home.sessionVariables = {
-     EDITOR = "nvim";
-  };
+  home.sessionVariables = { EDITOR = "nvim"; };
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
