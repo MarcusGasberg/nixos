@@ -8,22 +8,16 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    neovim-flake ={
-      url = "github:marcusgasberg/dotnix";
-    };
   };
 
-  outputs = { self, nixpkgs, home-manager, neovim-flake, ... }@inputs: 
+  outputs = { self, nixpkgs, home-manager, ... }@inputs: 
   {
-
-
     nixosConfigurations.default = nixpkgs.lib.nixosSystem {
-      specialArgs = {inherit inputs;};
+      specialArgs = { inherit inputs; };
+
       modules = [
         ./configuration.nix
-        ./modules/nvim.nix
-        inputs.home-manager.nixosModules.default
+        home-manager.nixosModules.default
       ];
     };
   };

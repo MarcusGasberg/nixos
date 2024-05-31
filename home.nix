@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
 {
   # Home Manager needs a bit of information about you and the paths it should
@@ -10,13 +10,74 @@
     enable = true;
     userName = "Marcus Gasberg";
     userEmail = "mrgasberg@hotmail.com";
+
   };
-  programs.neovim = {
+
+  programs.neovim = 
+  let
+    toLua = str: "lua << EOF\n${str}\nEOF\n";
+    toLuaFile = file: "lua << EOF\n${builtins.readFile file}\nEOF\n";
+  in
+  {
     enable = true;
     defaultEditor = true;
     viAlias = true;
     vimAlias = true;
     vimdiffAlias = true;
+
+    extraPackages = with pkgs; [
+      lua-language-server
+      rnix-lsp
+      xclip
+      wl-clipboard
+    ];
+
+    plugins = with pkgs.vimPlugins; [
+     {
+        plugin = nvim-lspconfig;
+        config = toLuaFile ./nvim/lua/lsp/init.lua;
+     }
+
+
+      cmp_luasnip
+      cmp-nvim-lsp
+      luasnip
+      friendly-snippets
+      nvim-cmp
+     {
+      plugin = nvim-cmp;
+      config = toLuaFile ./nvim/lua/lsp/cmp.lua;
+     }
+      
+      telescope-fzf-native-nvim
+      {
+        plugin = telescope-nvim;
+        config = toLuaFile ./nvim/lua/plugins/telescope.lua;
+      }
+
+      lualine-nvim
+      nvim-web-devicons
+
+      {
+        plugin = (nvim-treesitter.withPlugins (p: [
+          p.tree-sitter-nix
+          p.tree-sitter-vim
+          p.tree-sitter-bash
+          p.tree-sitter-lua
+          p.tree-sitter-json
+        ]));
+        config = toLuaFile ./nvim/lua/plugins/treesitter.lua;
+      }
+
+      vim-nix
+      ];
+
+      extraLuaConfig = ''
+        ${builtins.readFile ./nvim/lua/mappings.lua}
+        ${builtins.readFile ./nvim/lua/settings.lua}
+        ${builtins.readFile ./nvim/lua/colors.lua}
+        ${builtins.readFile ./nvim/lua/autocommands.lua}
+      '';
   };
 
   # This value determines the Home Manager release that your configuration is
@@ -81,7 +142,7 @@
   #  /etc/profiles/per-user/marcusg/etc/profile.d/hm-session-vars.sh
   #
   home.sessionVariables = {
-    # EDITOR = "emacs";
+     EDITOR = "nvim";
   };
 
   # Let Home Manager install and manage itself.
