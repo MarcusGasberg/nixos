@@ -84,18 +84,14 @@
   programs.firefox.enable = true;
   programs.zsh.enable = true;
 
-  services.displayManager = { sddm.enable = true; };
   services.xserver = {
     enable = true;
+    displayManager.gdm.enable = true;
+    desktopManager.gnome.enable = true;
     xkb = {
       options = "caps:escape";
       layout = "us";
     };
-  };
-  programs.hyprland = {
-    enable = true;
-    xwayland.enable = true;
-    package = inputs.hyprland.packages."${pkgs.system}".hyprland;
   };
 
   # Allow unfree packages
@@ -115,11 +111,27 @@
     nerdfonts
     zsh
     neovim
-    hyprland
-    wayland
-    wayland-utils
     sddm # or another display manager of your choice
+    citrix_workspace
+    tmux
   ];
+
+  programs.tmux = {
+    enable = true;
+    clock24 = true;
+    keyMode = "vi";
+    historyLimit = 10000;
+    shortcut = "a";
+    baseIndex = 1;
+    extraConfig = ''
+      set-option -g status-position top
+      bind r source-file ~/.config/tmux/tmux.conf \; display "Reloaded!"
+
+      bind -T copy-mode-vi v send -X begin-selection
+      bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "clip.exe"
+      bind P paste-buffer
+    '';
+  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.

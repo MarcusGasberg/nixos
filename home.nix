@@ -10,43 +10,6 @@
     userEmail = "mrgasberg@hotmail.com";
   };
 
-  wayland.windowManager.hyprland = {
-    enable = true;
-
-    plugins =
-      [ inputs.hyprland-plugins.packages."${pkgs.system}".borders-plus-plus ];
-
-    settings = {
-      decoration = {
-        shadow_offset = "0 5";
-        "col.shadow" = "rgba(00000099)";
-      };
-
-      "$mod" = "SUPER";
-
-      bindm = [
-        "$mod, mouse:272, movewindow"
-        "$mod, mouse:273, resizewindow"
-        "$mod ALT, mouse:272, resizewindow"
-      ];
-
-      "plugin:borders-plus-plus" = {
-        add_borders = 1; # 0 - 9
-
-        # you can add up to 9 borders
-        "col.border_1" = "rgb(ffffff)";
-        "col.border_2" = "rgb(2222ff)";
-
-        # -1 means "default" as in the one defined in general:border_size
-        border_size_1 = 10;
-        border_size_2 = -1;
-
-        # makes outer edges match rounding of the parent. Turn on / off to better understand. Default = on.
-        natural_rounding = "yes";
-      };
-    };
-  };
-
   programs.neovim = {
     enable = true;
     defaultEditor = true;
@@ -75,7 +38,7 @@
         y = 10;
       };
       window.decorations = "none";
-      window.opacity = 0.7;
+      # window.opacity = 0.7;
       scrolling.history = 1000;
       font = {
         normal = {
@@ -99,10 +62,12 @@
     enable = true;
     oh-my-zsh = {
       enable = true;
-      plugins = [ "git" ];
+      plugins = [ "git" "z" ];
       theme = "robbyrussell";
     };
   };
+
+  catppuccin.enable = true;
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
